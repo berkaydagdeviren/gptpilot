@@ -1,0 +1,67 @@
+.retail-tracking {
+  padding: 20px;
+}
+
+.sale-card {
+  border: 1px solid #ddd;
+  margin: 10px 0;
+  padding: 10px;
+}
+
+.sale-card h3 {
+  margin: 0;
+  padding-bottom: 10px;
+}
+
+.sales-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Styles for the Select components and product items */
+.select-company, .select-product {
+  margin-bottom: 20px;
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.product-item span {
+  margin-right: 10px;
+}
+
+/* Styles for the Different Price checkbox and Price Color radio buttons */
+.different-price-container, .price-color-container {
+  margin-top: 20px;
+}
+
+.price-color-container {
+  display: flex;
+  align-items: center;
+}
+
+.price-color-container input[type="radio"] {
+  margin-left: 10px;
+  margin-right: 5px;
+}
+
+/* Delete button for product items */
+.product-item button {
+  cursor: pointer;
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+}
+
+.product-item button:hover {
+  background-color: #ff3333;
+}
