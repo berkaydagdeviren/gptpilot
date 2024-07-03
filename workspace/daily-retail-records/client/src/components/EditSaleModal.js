@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Form, Button, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const EditSaleModal = ({ show, onHide, saleId, onSaleUpdated }) => {
+const EditSalePage = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [saleData, setSaleData] = useState({ itemsSold: [] });
   const [updatedPrices, setUpdatedPrices] = useState({});
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (saleId) {
-      fetchSaleData(saleId);
-    }
-  }, [saleId]);
-
-  const fetchSaleData = async (id) => {
-    try {
-      const response = await axios.get(`/api/sales/${id}`);
-      setSaleData(response.data);
-      const initialPrices = {};
-      response.data.itemsSold.forEach(item => {
-        initialPrices[item._id] = item.price;
-      });
-      setUpdatedPrices(initialPrices);
-    } catch (error) {
-      console.error("Error fetching sale data:", error);
-    }
-  };
+    const fetchSaleData = async () => {
+      try {
+        const response = await axios.get(`/api/sales/${id}`);
+        setSaleData(response.data);
+        const initialPrices = {};
+        response.data.itemsSold.forEach(item => {
+          initialPrices[item.productId] = item.price;
+        });
+        setUpdatedPrices(initialPrices);
+      } catch (error) {
+        console.error("Error fetching sale data:", error);
+        setError('Failed to fetch sale data. Please try again later.');
+      }
+    };
+    fetchSaleData();
+  }, [id]);
 
   const handlePriceChange = (itemId, price) => {
     setUpdatedPrices(prev => ({ ...prev, [itemId]: price }));
@@ -34,40 +36,40 @@ const EditSaleModal = ({ show, onHide, saleId, onSaleUpdated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.patch(`/api/sales/${saleId}`, { itemsSold: saleData.itemsSold.map(item => ({ ...item, price: updatedPrices[item._id] })) });
+      const updatedItemsSold = saleData.itemsSold.map(item => ({
+        ...item,
+        price: updatedPrices[item.productId] || item.price
+      }));
+      await axios.patch(`/api/sales/${id}`, { itemsSold: updatedItemsSold });
       console.log('Sale updated successfully');
-      onSaleUpdated();
-      onHide();
+      navigate('/retail-tracking');
     } catch (error) {
-      console.error("Error updating sale:", error);
+      console.error("Error updating sale:", error.response ? error.response.data : error.message);
+      setError('Error updating sale. ' + (error.response ? error.response.data.message : error.message));
     }
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>Edit Sale</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form onSubmit={handleSubmit}>
-          {saleData.itemsSold.map(item => (
-            <Form.Group key={item._id}>
-              <Form.Label>{item.itemName}</Form.Label>
-              <Form.Control
-                type="number"
-                value={updatedPrices[item._id]}
-                onChange={(e) => handlePriceChange(item._id, e.target.value)}
-                required
-              />
-            </Form.Group>
-          ))}
-          <Button variant="primary" type="submit">
-            Save Changes
-          </Button>
-        </Form>
-      </Modal.Body>
-    </Modal>
+    <div className="edit-sale-page container">
+      <h2>Edit Sale</h2>
+      {error && <Alert variant="danger">{error}</Alert>}
+      <Form onSubmit={handleSubmit}>
+        {saleData.itemsSold.map((item, index) => (
+          <Form.Group key={index}>
+            <Form.Label>{item.itemName}</Form.Label>
+            <Form.Control
+              type="number"
+              value={updatedPrices[item.productId]}
+              onChange={(e) => handlePriceChange(item.productId, e.target.value)}
+              required
+            />
+          </Form.Group>
+        ))}
+        <Button variant="primary" type="submit">Save Changes</Button>
+        <Button variant="secondary" onClick={() => navigate(-1)}>Back</Button>
+      </Form>
+    </div>
   );
 };
 
-export default EditSaleModal;
+export default EditSalePage;
